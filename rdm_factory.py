@@ -1,7 +1,53 @@
 from pyscf.fci.addons import cre_a, cre_b, des_a, des_b
 import numpy as np
 import itertools
-import tensor_utils
+#import tensor_utils
+
+
+def explicit_parity(tup):
+    # lazy implementation to test faster ones
+    work = list(tup)
+    t = 0
+    while True:
+        for i in range(len(tup)):
+            if work[i]!=i:
+                try:
+                    if work[i]>work[i+1]:
+                        work[i], work[i+1] = work[i+1], work[i]
+                        t+=1
+                except IndexError:
+                    work[i], work[0] = work[0], work[i]
+                    t+=len(tup)-1
+        if work==range(len(tup)):
+            break
+    return t%2
+
+
+class ParityTranspose:
+    def __init__(self, rank):
+        self.rank = rank
+        self.iterable = itertools.permutations(range(rank), rank)
+    def next(self):
+        tmp = self.iterable.next()
+       # tot = 0
+       # t = -1
+       # for i in range(self.rank):
+       #     t*=-1
+       #     tot+=t*(tmp[i]-i)
+
+        return tmp, tot
+
+
+p = ParityTranspose(5)
+
+while True:
+    print p.next()
+
+assert(0)
+
+def apply_spin_resolved_rdm_symmetries(rdm):
+    rank = len(rdm.shape)/2
+    nbasis = rdm.shape[0]
 
 '''
 cre_a(ci0, norb, neleca_nelecb, ap_id)
@@ -93,6 +139,11 @@ def make_no_spin_resolved_rdm(civec, norbs, nelecs, rank):
                 tuple(alphas[2*i] for i in range(rank)),
                 tuple(alphas[2*i+1] for i in range(rank)))
     return rdm
+
+#def make_no_spin_resolved_rdm_sparse(civec, norbs, nelecs, rank):
+
+
+
 
 def spin_trace_no(rdm):
     rank = len(rdm.shape)/2
